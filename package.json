@@ -1,6 +1,6 @@
 {
   "name": "coverage-inspector",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "GUI Inspector for Google Chrome's coverage report. Uses sourcemaps to link bundle's lines to their source in the project.",
   "homepage": "https://github.com/mikhail-ev/coverage-inspector",
   "bugs": {
