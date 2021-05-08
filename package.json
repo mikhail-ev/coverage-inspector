@@ -1,0 +1,34 @@
+{
+  "name": "coverage-inspector",
+  "version": "0.1.0",
+  "description": "GUI Inspector for Google Chrome's coverage report. Uses sourcemaps to link bundle's lines to their source in the project.",
+  "homepage": "https://github.com/mikhail-ev/coverage-inspector",
+  "bugs": {
+    "url": "https://github.com/mikhail-ev/coverage-inspector/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mikhail-ev/coverage-inspector.git"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "axios": "^0.21.1",
+    "data-urls": "^2.0.0",
+    "glob": "^7.1.7",
+    "lodash": "^4.17.21",
+    "source-map": "^0.7.3",
+    "webpack": "^5.36.2",
+    "webpack-cli": "^4.7.0",
+    "yargs": "^17.0.0"
+  },
+  "scripts": {
+    "prebuild": "node ./prebuilder/prebuild.js",
+    "build": "npm run prebuild && webpack --config webpack.config.js"
+  },
+  "bin": {
+    "coverage-checker": "./bin/coverage-inspector.js"
+  },
+  "main": "./bin/coverage-inspector.js",
+  "author": "Mikhail Evseev <mikhail.yevseev@gmail.com>",
+  "license": "MIT"
+}

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        pre {
+            margin: 0;
+        }
+        .app {
+            display: flex;
+            height: 100%;
+        }
+        .tree-container {
+            flex: 1 1 auto;
+            height: 100%;
+            max-width: 20%;
+        }
+        .tree {
+            height: calc(100% - 22px);
+            width: 100%;
+            overflow: scroll;
+        }
+        .view-container, .source-container {
+            flex: 1 1;
+            height: 100%;
+            max-width: 40%;
+        }
+        .view, .source {
+            height: calc(100% - 20px);
+            overflow: scroll;
+            line-height: 15px;
+        }
+        .info-line {
+            display: flex;
+            background: #faebd7;
+            font-family: monospace;
+            justify-content: space-between;
+        }
+        .file-name {
+            line-height: 20px;
+            background: #faebd7;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            font-family: monospace;
+        }
+        .file-name:empty {
+            display: none;
+        }
+        .children-container {
+            padding-left: 20px;
+            display: none;
+        }
+        .title {
+            user-select: none;
+            white-space: pre;
+            font-family: monospace;
+        }
+        .title.selected {
+            background: #faebd7;
+        }
+        .title.danger {
+            color: #a52a2a;
+        }
+        .title.folder::before {
+            content: "📁";
+        }
+        .title.folder.expanded::before {
+            content: "📂";
+        }
+        .title:not(.folder)::before {
+            content: "📄";
+        }
+        .title.expanded ~ .children-container {
+            display: block;
+        }
+        .title .usage {
+            font-weight: bold;
+        }
+        .unused {
+            background: #fbb4b4;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="tree-container">
+            <div class="tree-controls">
+                <select id="view-type">
+                    <option value="all">All</option>
+                    <option value="duplicated">Duplicated</option>
+                </select>
+                <button id="expand-all">Expand All</button>
+                <button id="collapse-all">Collapse All</button>
+            </div>
+            <div id="tree" class="tree"></div>
+        </div>
+        <div class="view-container">
+            <pre class="file-name"></pre>
+            <pre id="view" class="view"></pre>
+        </div>
+        <div class="source-container">
+            <div class="info-line">
+                <pre class="file-name"></pre>
+                <div><a target="_blank"></a></div>
+            </div>
+            <pre id="source" class="source"></pre>
+        </div>
+    </div>
+    <script>
+        window.TREE = JSON.parse(`%TREE_DATA%`);
+    </script>
+    <script>
+        const nodeMap = {}
+        let index = 0;
+
+        function renderNode(parent, node, includeNotDuplicated) {
+            const duplicateRelated = (node.children && node.info.containsDuplicates) || node.info.chunks?.length > 1
+            if (!includeNotDuplicated && !duplicateRelated) {
+                return;
+            }
+            const title = document.createElement('span')
+            title.innerText = decodeURIComponent(node.name)
+            title.classList.add('title')
+            title.setAttribute('data-id', index.toString());
+            nodeMap[index++] = node
+
+            const container = document.createElement('div')
+            container.classList.add('container')
+            container.append(title)
+
+            const childrenContainer = document.createElement('div')
+            childrenContainer.classList.add('children-container')
+            container.append(childrenContainer)
+
+            if (node.children) {
+                title.classList.add('folder', 'expanded')
+                node.children.forEach((n) => renderNode(childrenContainer, n, includeNotDuplicated))
+            } else if (node.info.chunks.length > 1) {
+                title.classList.add('danger')
+                const usage = document.createElement('span')
+                usage.innerText = ' x' + node.info.chunks.length;
+                usage.classList.add('usage')
+                title.append(usage)
+            }
+
+            parent.append(container)
+        }
+
+        function showChunk(chunkInfo) {
+            console.log(chunkInfo)
+            document.getElementById('source').innerHTML = '';
+            const chunkPath = decodeURIComponent(chunkInfo.path)
+            const chunk = window.TREE.chunks[chunkPath]
+            const text = decodeURIComponent(chunk.text)
+
+            const fragment = document.createDocumentFragment();
+
+            // chunk.ranges.forEach((range) => {
+            //     const part = document.createElement('span')
+            //     part.innerText = text.slice(range.start, range.end)
+            //     if (!range.used) {
+            //         part.classList.add('unused')
+            //     }
+            //     fragment.append(part)
+            // })
+
+            const before = text.slice(0, chunkInfo.start.position);
+            const file = text.slice(chunkInfo.start.position, chunkInfo.end.position);
+            const after = text.slice(chunkInfo.end.position);
+
+            const beforePart = document.createElement('span')
+            beforePart.innerText = before;
+            const filePart = document.createElement('span')
+            filePart.innerText = file
+            filePart.classList.add('unused')
+            const afterPart = document.createElement('span')
+            afterPart.innerText = after;
+
+            fragment.append(beforePart, filePart, afterPart);
+
+            document.getElementById('source').append(fragment);
+
+            document.getElementById('source').scrollTop = (chunkInfo.start.line - 1) * 15;
+
+            updateOpenLink(chunkPath)
+        }
+
+        function updateOpenLink(path) {
+            const link = document.querySelector('.source-container .info-line a')
+            link.setAttribute('href', `${window.TREE.appUrl}/${path}`)
+            link.innerText = 'Open';
+        }
+
+        function expandAll() {
+            document.querySelectorAll('.title.folder').forEach((element) => {
+                if (!element.classList.contains('expanded')) {
+                    element.classList.add('expanded')
+                }
+            })
+        }
+
+        function collapseAll() {
+            document.querySelectorAll('.title.folder.expanded').forEach((element) => {
+                element.classList.remove('expanded')
+            })
+        }
+
+        function renderTree(includeNotDuplicated) {
+            const tree = document.getElementById('tree');
+            tree.innerHTML = '';
+            renderNode(tree, window.TREE.root, includeNotDuplicated)
+        }
+
+        renderTree(true);
+
+        document.getElementById('tree').addEventListener('click', (event) => {
+            if (event.target.classList.contains('title')) {
+                if (event.target.classList.contains('folder')) {
+                    if (event.target.classList.contains('expanded')) {
+                        event.target.parentElement.querySelectorAll('.title').forEach((element) => {
+                            element.classList.remove('expanded');
+                        })
+                        event.target.classList.remove('expanded');
+                    } else {
+                        event.target.classList.add('expanded');
+                    }
+                } else {
+                    const node = nodeMap[event.target.getAttribute('data-id')]
+                    document.querySelectorAll('.title.selected')
+                        .forEach((element) => element.classList.remove('selected'));
+                    event.target.classList.add('selected');
+                    document.querySelector('.view-container .file-name').innerText = decodeURIComponent(node.info.path)
+                    document.getElementById('view').innerText = decodeURIComponent(node.info.text);
+                    document.querySelector('.source-container .file-name').innerText = ''
+                    if (node.info.chunks.length === 1) {
+                        const chunk = node.info.chunks[0]
+                        document.querySelector('.source-container .file-name').innerText = decodeURIComponent(chunk.path)
+                        showChunk(chunk);
+                    } else {
+                        document.getElementById('source').innerText = ''
+                        const select = document.createElement('select')
+                        node.info.chunks.forEach((chunk, i) => {
+                            const chunkPath = decodeURIComponent(chunk.path)
+                            const option = document.createElement('option')
+                            option.innerText = chunkPath
+                            if (i === 0) {
+                                option.setAttribute('selected', 'selected')
+                                showChunk(chunk)
+                            }
+                            select.append(option)
+                        })
+                        select.onchange = function(event) {
+                            const selectedChunk = node.info.chunks.find((chunk) =>
+                                decodeURIComponent(chunk.path) === event.target.value);
+                            showChunk(selectedChunk)
+                        }
+                        document.querySelector('.source-container .file-name').append(select)
+                    }
+                }
+            }
+        })
+
+        document.getElementById('expand-all').addEventListener('click', () => {
+            expandAll()
+        })
+
+        document.getElementById('collapse-all').addEventListener('click', () => {
+            collapseAll()
+        })
+
+        document.getElementById('view-type').addEventListener('change', (event) => {
+            renderTree(event.target.value === 'all')
+        })
+    </script>
+</body>
+</html>
