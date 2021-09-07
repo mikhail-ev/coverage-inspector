@@ -2,6 +2,12 @@
 GUI Inspector for Google Chrome's coverage report. Uses sourcemaps to link bundle's lines to their source in the project.
 Based on [mozilla/source-map](https://github.com/mozilla/source-map).
 
+### Features:
+* Re-creates project's used file structure for a specific page.
+* Gives side-by-side view of a file in the bundle and highlights its boundaries.
+* Shows duplicates in the final bundle.
+* Shows unused lines in the original, not-minified file
+
 ## Quickstart
 ### 1. Install CLI
 ```shell
