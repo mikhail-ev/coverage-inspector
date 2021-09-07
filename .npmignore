@@ -1,6 +1,8 @@
 node_modules
 .idea
+images
+examples
 
-# development convinience
+# development convenience
 coverage.json
 report.html

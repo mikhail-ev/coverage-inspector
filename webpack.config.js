@@ -1,5 +1,5 @@
 const path = require('path');
-const webpack = require('webpack')
+const webpack = require('webpack');
 
 module.exports = {
     entry: './src/cli.js',
@@ -11,5 +11,16 @@ module.exports = {
     },
     plugins: [
         new webpack.BannerPlugin({ banner: '#!/usr/bin/env node', raw: true }),
-    ]
+    ],
+    module: {
+        rules: [
+            {
+                test: /\.(wasm|html)$/i,
+                type: 'asset/inline',
+                generator: {
+                    dataUrl: (content) => content
+                }
+            }
+        ]
+    },
 };

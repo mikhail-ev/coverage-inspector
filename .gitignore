@@ -4,4 +4,4 @@ node_modules
 
 # development convinience
 coverage.json
-report.html
+examples/github/report.html

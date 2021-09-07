@@ -3,7 +3,7 @@ const axios = require('axios');
 const parseDataURL = require('data-urls');
 const yargs = require('yargs')
 const {logWarning, logError} = require('./logging')
-const mappings = require('../resources/mappings.wasm.js')
+const mappings = require('../resources/mappings.wasm');
 
 function getStartInChunk(fixedPath, sourceText, consumer) {
     const limit = +yargs.argv['search-start-in-lines']
@@ -15,7 +15,7 @@ function getStartInChunk(fixedPath, sourceText, consumer) {
     let line = 1
     let start
     do {
-        start = consumer.generatedPositionFor({ source: fixedPath, line: line++, column: 0 })
+        start = consumer.generatedPositionFor({source: fixedPath, line: line++, column: 0})
     } while (start.line === null && line < limit)
     if (line === limit) {
         logWarning(`Could not find start in first ${limit} lines for ${fixedPath}`)
@@ -50,8 +50,7 @@ async function getSourceMap(coverageItem) {
         }
         try {
             return JSON.parse(sourcemap.body.toString())
-        }
-        catch (e) {
+        } catch (e) {
             logError(`Can not parse sourcemap for file ${coverageItem.url}`)
             return;
         }
@@ -65,9 +64,9 @@ async function getSourceMap(coverageItem) {
 }
 
 async function createConsumer(rawSourceMapJsonData) {
-    global.fetch = async () => ({ arrayBuffer: () => mappings.buffer });
+    global.fetch = async () => ({arrayBuffer: () => Buffer.from(mappings, 'base64').buffer});
     const sourceMap = require('source-map');
-    sourceMap.SourceMapConsumer.initialize({ 'lib/mappings.wasm': '' })
+    sourceMap.SourceMapConsumer.initialize({'lib/mappings.wasm': ''})
     const consumer = await new sourceMap.SourceMapConsumer(rawSourceMapJsonData)
     global.fetch = void 0;
     return consumer;

@@ -22,8 +22,7 @@
     "yargs": "^17.0.0"
   },
   "scripts": {
-    "prebuild": "node ./prebuilder/prebuild.js",
-    "build": "npm run prebuild && webpack --config webpack.config.js"
+    "build": "webpack --config webpack.config.js"
   },
   "bin": "./bin/coverage-inspector.js",
   "main": "./bin/coverage-inspector.js",

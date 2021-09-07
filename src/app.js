@@ -50,8 +50,9 @@ async function parseSourceMap(tree, rawSourceMapJsonData, coverageItem) {
 }
 
 async function parse() {
-    const tree = new Tree(appUrl, examUrl);
     const coverage = getCoverageReport();
+    const url = coverage[0].url;
+    const tree = new Tree(url, url);
 
     for(let i = 0; i < coverage.length; ++i) {
         const sourcemap = await getSourceMap(coverage[i])
