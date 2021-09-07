@@ -18,7 +18,7 @@ Create a coverage report using Chrome's `Coverage` tab. Please follow [its docum
     coverage-inspector parse -i <path-to-your-report> [-n <name-to-override-default-output-filename>]
 ```
 
-Example of an output generated for this page.
+[Check out an example](https://htmlpreview.github.io/?https://github.com/mikhail-ev/coverage-inspector/master/examples/github/report.html) of an output generated for this page.
 
 ## Commands
 ### Parse
