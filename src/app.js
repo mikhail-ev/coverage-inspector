@@ -5,9 +5,6 @@ const {generateUnusedRanges, textLastLineAndColumn, lineColumnToPosition} = requ
 const {getCoverageReport} = require('./helpers/coverage')
 const {logWarning, logInfo, logDebug} = require('./helpers/logging')
 
-const examUrl = 'https://app.futuresimple.com/dashboards/main';
-const appUrl = 'https://static.futuresimple.com';
-
 async function parseSourceMap(tree, rawSourceMapJsonData, coverageItem) {
     const consumer = await createConsumer(rawSourceMapJsonData)
 
